@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Esai Sistem Kendali & Penilaian</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --accent-color: #059669;
+            --danger-color: #dc2626;
+            --warning-color: #d97706;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        /* Result Panel Styling */
+        .score-card {
+            display: none;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+        }
+
+        .score-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #38bdf8;
+            line-height: 1;
+            margin: 15px 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        .badge-pass { background-color: #10b981; color: white; }
+        .badge-fail { background-color: #ef4444; color: white; }
+
+        .progress-bar-bg {
+            background-color: #334155;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #38bdf8;
+            width: 0%;
+            transition: width 1s ease-in-out;
+        }
+
+        .quiz-info {
+            background-color: #eff6ff;
+            border-left: 4px solid var(--primary-color);
+            padding: 12px 16px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .question-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .question-title {
+            font-weight: 600;
+            font-size: 1.05rem;
+            margin-bottom: 12px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 90px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            resize: vertical;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* Review and Self Grading Section */
+        .feedback-box {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .key-answer {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .self-grade-options {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: #fffbe3;
+            border: 1px solid #fde68a;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .self-grade-options label {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #92400e;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-correct { background-color: #10b981; color: white; }
+        .btn-near { background-color: #0ea5e9; color: white; }
+        .btn-partial { background-color: #f59e0b; color: white; }
+        .btn-less { background-color: #f97316; color: white; }
+        .btn-wrong { background-color: #ef4444; color: white; }
+
+        .matched-box {
+            background-color: #f5f3ff;
+            border: 1px solid #ddd6fe;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+
+        .kw {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin: 2px;
+            font-size: 0.8rem;
+        }
+        .kw-count { font-weight: bold; }
+        .matched-yes { background-color: #bbf7d0; color: #166534; }
+        .matched-no { background-color: #fee2e2; color: #b91c1c; }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        button.main-btn {
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-submit { background-color: var(--primary-color); color: white; }
+        .btn-submit:hover { background-color: var(--primary-hover); }
+        .btn-reset { background-color: #64748b; color: white; }
+
+        .item-score-badge {
+            float: right;
+            font-size: 0.85rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Identitas Siswa */
+        .ident-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 24px;
+            max-width: 420px;
+            margin: 0 auto;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08);
+        }
+        .ident-card h2 {
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            font-size: 1.2rem;
+        }
+        .ident-card label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin: 12px 0 4px;
+            color: var(--text-color);
+        }
+        .ident-card input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .ident-card input:focus { border-color: var(--primary-color); }
+        .ident-btn { width: 100%; margin-top: 20px; }
+        .cbt-note {
+            margin-top: 14px;
+            background-color: #fff7ed;
+            border: 1px solid #fdba74;
+            border-left: 4px solid var(--warning-color);
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            color: #7c2d12;
+        }
+
+        .student-bar {
+            margin-top: 8px;
+            display: inline-block;
+            background-color: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .auto-notice {
+            background-color: #dc2626;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgba(220,38,38,0.3);
+        }
+
+        .float-fullscreen {
+            position: fixed;
+            bottom: 18px;
+            right: 18px;
+            z-index: 9999;
+            padding: 10px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 6px 12px -2px rgba(37,99,235,0.5);
+        }
+        .float-fullscreen:hover { background-color: var(--primary-hover); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Kuis Esai: Sistem Kendali</h1>
+        <p style="color: #64748b; font-size: 0.95rem;">Telkom University Online Learning</p>
+        <div id="studentBar" class="student-bar" style="display:none;"></div>
+    </header>
+
+    <!-- Form Identitas Siswa -->
+    <div id="identForm" class="ident-card">
+        <h2>📋 Data Diri Siswa</h2>
+        <label for="studentName">Nama Lengkap</label>
+        <input type="text" id="studentName" placeholder="Isi nama lengkap Anda" autocomplete="name">
+        <label for="studentClass">Kelas</label>
+        <input type="text" id="studentClass" placeholder="Contoh: 12 A / 2 D4 TT46" autocomplete="organization">
+        <div class="cbt-note">🔒 Mode ujian (CBT): layar masuk mode penuh. <strong>Jika Anda keluar dari tab/browser lebih dari 5 detik, kuis otomatis dikumpulkan.</strong></div>
+        <button type="button" class="main-btn btn-submit ident-btn" onclick="startQuiz()">Mulai Kuis</button>
+    </div>
+
+    <!-- Area Kuis (muncul setelah identitas) -->
+    <div id="quizArea" style="display:none;">
+        <div id="autoNotice" class="auto-notice" style="display:none;">⚠️ Anda terdeteksi meninggalkan halaman lebih dari 5 detik — kuis otomatis dikumpulkan.</div>
+
+        <!-- Panel Hasil Nilai -->
+        <div id="scoreCard" class="score-card">
+            <h3>Hasil Evaluasi Tugas</h3>
+            <div id="scoreNumber" class="score-number">0</div>
+            <div class="progress-bar-bg">
+                <div id="progressBar" class="progress-bar-fill"></div>
+            </div>
+            <div id="scoreBadge" class="badge"></div>
+            <p id="scoreSummary" style="margin-top: 15px; font-size: 0.9rem; color: #cbd5e1;"></p>
+        </div>
+
+        <div class="quiz-info" id="quizInfo">
+            📝 <strong>Petunjuk:</strong> Jawab 10 soal esai berikut. Setelah menekan tombol <strong>"Kirim & Hitung Nilai"</strong>, sistem menilai dengan <strong>rubrik bertingkat 0&ndash;10</strong>: kata kunci inti berbobot ganda, jawaban berbentuk kalimat utuh dinilai lebih tinggi daripada sekadar daftar kata. Sistem menampilkan kunci jawaban & kata kunci yang cocok/belum agar Anda bisa koreksi ulang secara mandiri.
+        </div>
+
+        <form id="quizForm">
+            <div id="questionsContainer"></div>
+
+            <div class="actions">
+                <button type="button" class="main-btn btn-submit" id="btnSubmit" onclick="calculateScore()">Kirim & Hitung Nilai</button>
+                <button type="button" class="main-btn btn-reset" onclick="resetQuiz()">Acak Ulang Soal</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<button type="button" id="btnFullscreen" class="float-fullscreen" style="display:none;" onclick="goFullscreen()">⛶ Layar Penuh</button>
+
+<script>
+    // Database 20 Soal Esai beserta Kata Kunci Penilaian (Keywords)
+    const questionDatabase = [
+        {
+            id: 1,
+            question: "Jelaskan definisi dari sistem kendali (control system) secara umum!",
+            keywords: ["komponen", "fisik", "mengatur", "mengarahkan", "keluaran", "target"],
+            answer: "Sistem kendali adalah susunan komponen fisik yang saling terhubung untuk mengatur, mengarahkan, atau memerintah diri sendiri maupun sistem lain agar menghasilkan keluaran sesuai target yang diinginkan."
+        },
+        {
+            id: 2,
+            question: "Jelaskan prinsip kerja dari Sistem Kendali Terbuka (Open-Loop System)!",
+            keywords: ["keluaran", "umpan balik", "feedback", "mempengaruhi"],
+            absent: ["umpan balik", "feedback", "mempengaruhi"],
+            answer: "Sistem di mana keluaran tidak mempengaruhi aksi pengontrolan; tidak ada proses umpan balik (feedback)."
+        },
+        {
+            id: 3,
+            question: "Jelaskan prinsip kerja dari Sistem Kendali Tertutup (Closed-Loop System)!",
+            keywords: ["umpan balik", "feedback", "kesalahan", "error", "referensi", "target"],
+            answer: "Sistem yang menggunakan sinyal umpan balik (feedback) dari keluaran untuk membandingkannya dengan nilai referensi (target) sehingga kesalahan (error) dapat diminimalkan."
+        },
+        {
+            id: 4,
+            question: "Sebutkan 4 komponen utama dalam suatu sistem kendali!",
+            keywords: ["masukan", "pengendali", "aktuator", "sensor", "transduser", "controller", "setpoint"],
+            answer: "1. Masukan (Input/Setpoint), 2. Pengendali (Controller), 3. Aktuator, 4. Sensor/Transduser."
+        },
+        {
+            id: 5,
+            question: "Apa fungsi dari Masukan (Input / Setpoint) dalam sistem kendali?",
+            keywords: ["nilai", "acuan", "target", "diinginkan"],
+            answer: "Nilai acuan atau target yang diinginkan dari suatu sistem."
+        },
+        {
+            id: 6,
+            question: "Mengapa Controller sering disebut sebagai 'otak' dari sistem kendali?",
+            answer: "Pengendali (Controller) adalah otak sistem yang memproses data masukan/umpan balik dan menghasilkan sinyal kendali untuk dikirim ke aktuator.",
+            keywords: ["otak", "memproses", "data", "sinyal"]
+        },
+        {
+            id: 7,
+            question: "Jelaskan peran Aktuator dalam sistem kendali beserta contohnya!",
+            keywords: ["perangkat", "menggerakkan", "mengubah", "fisik", "motor", "katup", "pemanas"],
+            answer: "Perangkat keras yang menggerakkan atau mengubah proses fisik. Contoh: motor, katup, pemanas."
+        },
+        {
+            id: 8,
+            question: "Jelaskan fungsi dari Sensor / Transduser dalam sistem kendali!",
+            keywords: ["mengukur", "keluaran", "umpan balik", "kondisi"],
+            answer: "Alat pengukur keluaran atau kondisi fisik untuk dikirim kembali sebagai sinyal umpan balik."
+        },
+        {
+            id: 9,
+            question: "Mengapa mesin cuci otomatis berbasis waktu dikategorikan sebagai sistem kendali terbuka?",
+            keywords: ["waktu", "umpan balik", "keluaran", "kebersihan"],
+            absent: ["umpan balik", "feedback"],
+            answer: "Karena prosesnya hanya berjalan berdasarkan basis waktu tanpa ada umpan balik yang mengukur tingkat kebersihan pakaian secara langsung."
+        },
+        {
+            id: 10,
+            question: "Mengapa pendingin ruangan (AC) dikategorikan sebagai sistem kendali tertutup?",
+            keywords: ["sensor", "suhu", "umpan balik", "menstabilkan", "target"],
+            answer: "Karena AC menggunakan sensor suhu sebagai umpan balik untuk membandingkan suhu ruangan dengan target/setpoint sehingga suhu bisa disesuaikan secara otomatis."
+        },
+        {
+            id: 11,
+            question: "Apa kelebihan utama Sistem Kendali Tertutup dibanding Terbuka?",
+            keywords: ["akurasi", "koreksi", "gangguan", "presisi", "meminimalkan"],
+            answer: "Memiliki akurasi lebih tinggi dan mampu mengoreksi kesalahan (error) akibat gangguan dari luar secara otomatis."
+        },
+        {
+            id: 12,
+            question: "Apa kelemahan utama dari Sistem Kendali Terbuka?",
+            keywords: ["kurang", "akurat", "mengoreksi", "umpan balik", "gangguan"],
+            absent: ["umpan balik", "feedback", "akurat", "mengoreksi"],
+            answer: "Kurang akurat dan tidak dapat mengoreksi kesalahan jika terjadi gangguan dari luar karena tidak memiliki umpan balik."
+        },
+        {
+            id: 13,
+            question: "Apa yang dimaksud dengan sinyal kesalahan (error) pada sistem kendali tertutup?",
+            keywords: ["selisih", "perbedaan", "target", "setpoint", "keluaran"],
+            answer: "Selisih antara nilai referensi/target (setpoint) dengan sinyal keluaran sebenarnya yang terukur."
+        },
+        {
+            id: 14,
+            question: "Sebutkan contoh penerapan sistem kendali terbuka dalam kehidupan sehari-hari selain mesin cuci!",
+            keywords: ["toaster", "pemanggang", "lampu", "pengering", "timer"],
+            answer: "Contoh: Pemanggang roti (toaster) berbasis timer, pengering rambut, atau lampu jalan berbasis durasi waktu."
+        },
+        {
+            id: 15,
+            question: "Sebutkan contoh penerapan sistem kendali tertutup dalam dunia otomotif atau industri!",
+            keywords: ["cruise control", "oven", "termostat", "kecepatan"],
+            answer: "Contoh: Sistem Cruise Control pada mobil (menjaga kecepatan) atau Oven Industri bertermostat."
+        },
+        {
+            id: 16,
+            question: "Sebutkan alur kerja singkat dari komponen sistem kendali tertutup!",
+            keywords: ["masukan", "pengendali", "aktuator", "sensor", "umpan balik"],
+            answer: "Masukan/Setpoint -> Pengendali -> Aktuator -> Proses -> Sensor (Umpan Balik) -> Pengendali."
+        },
+        {
+            id: 17,
+            question: "Apa akibatnya jika sensor pada sistem kendali tertutup mengalami kerusakan?",
+            keywords: ["salah", "error", "tidak stabil", "umpan balik", "gagal"],
+            absent: ["umpan balik", "feedback"],
+            answer: "Sistem tidak mendapatkan data umpan balik yang valid, menyebabkan kesalahan pengontrolan sehingga keluaran menjadi tidak stabil atau tidak mencapai target."
+        },
+        {
+            id: 18,
+            question: "Mengapa sistem kendali terbuka secara umum lebih murah dibanding sistem tertutup?",
+            keywords: ["sederhana", "tanpa", "sensor", "biaya"],
+            answer: "Karena konstruksi komponennya lebih sederhana dan tidak membutuhkan sensor umpan balik yang mahal."
+        },
+        {
+            id: 19,
+            question: "Apa peran utama sinyal umpan balik (feedback signal)?",
+            keywords: ["mengirim", "membandingkan", "keluaran", "target"],
+            answer: "Mengirimkan data kondisi keluaran terkini kembali ke pengendali untuk dibandingkan dengan target."
+        },
+        {
+            id: 20,
+            question: "Sebutkan satu contoh kendali tertutup yang ada di dalam tubuh manusia!",
+            keywords: ["suhu", "tubuh", "kadar", "gula", "jantung"],
+            answer: "Sistem pengaturan suhu tubuh manusia (termoregulasi) atau pengaturan kadar gula darah oleh pankreas."
+        }
+    ];
+
+    let currentQuestions = [];
+    let studentScores = Array(10).fill(0); // Menyimpan skor per soal (maks 10 per soal)
+    let quizSubmitted = false;
+    let identitySubmitted = false;
+    let awayTimer = null;
+
+    // --- Form Identitas & Awal Kuis ---
+    function startQuiz() {
+        const nama = document.getElementById('studentName').value.trim();
+        const kelas = document.getElementById('studentClass').value.trim();
+        if (!nama || !kelas) {
+            alert('Nama dan kelas wajib diisi terlebih dahulu.');
+            return;
+        }
+
+        identitySubmitted = true;
+        quizSubmitted = false;
+
+        document.getElementById('studentBar').style.display = 'inline-block';
+        document.getElementById('studentBar').innerHTML = `👤 ${escapeHtml(nama)} &nbsp;|&nbsp; Kelas: ${escapeHtml(kelas)}`;
+
+        document.getElementById('identForm').style.display = 'none';
+        document.getElementById('quizArea').style.display = 'block';
+        document.getElementById('btnFullscreen').style.display = 'inline-block';
+        document.getElementById('autoNotice').style.display = 'none';
+
+        renderQuiz();
+        goFullscreen();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    function goFullscreen() {
+        const el = document.documentElement;
+        if (!document.fullscreenElement) {
+            const req = el.requestFullscreen || el.webkitRequestFullscreen;
+            if (req) { try { req.call(el); } catch (e) {} }
+        }
+    }
+
+    // --- Deteksi Keluar Tab / Kehilangan Fokus / Keluar Layar Penuh ---
+    function armAwayTimer() {
+        if (!identitySubmitted || quizSubmitted) return;
+        if (awayTimer !== null) return;
+        awayTimer = setTimeout(() => {
+            awayTimer = null;
+            if (document.visibilityState === 'hidden' || !document.hasFocus() || !document.fullscreenElement) {
+                calculateScore(true);
+            }
+        }, 5000);
+    }
+
+    function disarmAwayTimer() {
+        if (awayTimer !== null) {
+            clearTimeout(awayTimer);
+            awayTimer = null;
+        }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') armAwayTimer();
+        else disarmAwayTimer();
+    });
+
+    window.addEventListener('blur', () => armAwayTimer());
+    window.addEventListener('focus', () => disarmAwayTimer());
+
+    document.addEventListener('fullscreenchange', () => {
+        if (document.fullscreenElement) disarmAwayTimer();
+        else armAwayTimer();
+    });
+
+    function shuffleArray(array) {
+        let shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    }
+
+    function renderQuiz() {
+        const container = document.getElementById('questionsContainer');
+        container.innerHTML = '';
+        currentQuestions = shuffleArray(questionDatabase).slice(0, 10);
+        studentScores = Array(10).fill(0);
+
+        currentQuestions.forEach((q, index) => {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.innerHTML = `
+                <div class="question-title">
+                    Soal ${index + 1}: ${q.question}
+                    <span id="badge_${index}" class="item-score-badge" style="display:none;"></span>
+                </div>
+                <textarea id="answer_${index}" placeholder="Ketikkan jawaban Anda di sini..."></textarea>
+                
+                <div id="feedback_${index}" class="feedback-box">
+                    <div class="key-answer">
+                        <strong>Kunci Jawaban / Referensi:</strong><br>${q.answer}
+                    </div>
+                    <div id="matched_${index}" class="matched-box"></div>
+                    <div class="self-grade-options">
+                        <label>Penyesuaian Nilai Mandiri:</label>
+                        <div class="btn-group">
+                            <button type="button" class="btn-sm btn-correct" onclick="overrideScore(${index}, 10)">Benar (10)</button>
+                            <button type="button" class="btn-sm btn-near" onclick="overrideScore(${index}, 8)">Hampir (8)</button>
+                            <button type="button" class="btn-sm btn-partial" onclick="overrideScore(${index}, 5)">Setengah (5)</button>
+                            <button type="button" class="btn-sm btn-less" onclick="overrideScore(${index}, 2)">Kurang (2)</button>
+                            <button type="button" class="btn-sm btn-wrong" onclick="overrideScore(${index}, 0)">Salah (0)</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    // Kata kunci strategis yang diberi bobot ganda (nilai 2x)
+    const importantKeywords = new Set([
+        "mengatur", "keluaran", "target", "umpan balik", "feedback", "error",
+        "setpoint", "referensi", "memproses", "sinyal", "menggerakkan", "mengubah",
+        "mengukur", "waktu", "sensor", "suhu", "akurasi", "akurat", "mengoreksi",
+        "tidak stabil", "selisih", "perbedaan", "toaster", "cruise control",
+        "termostat", "pengendali", "aktuator", "sederhana", "membandingkan",
+        "mengirim", "gagal", "otak", "konstruksi"
+    ]);
+
+    // Kamus sinonim: kata kunci yang secara makna setara digabung dalam satu kelompok
+    const synonymGroups = {
+        'umpan-balik': ['umpan balik', 'feedback', 'feed back', 'feed-back', 'umpanbalik'],
+        'target': ['target', 'setpoint', 'set point', 'set-point', 'referensi', 'acuan', 'nilai acuan'],
+        'kesalahan': ['error', 'kesalahan', 'salah', 'keliru', 'selisih', 'perbedaan', 'deviasi'],
+        'sensor': ['sensor', 'transduser', 'transducer', 'pengukur'],
+        'pengendali': ['pengendali', 'controller', 'kontroler', 'kontrol'],
+        'masukan': ['masukan', 'input', 'masukan/input', 'umpan masukan'],
+        'keluaran': ['keluaran', 'output', 'luaran'],
+        'mengukur': ['mengukur', 'ukur', 'pengukuran'],
+        'suhu': ['suhu', 'temperatur', 'temperature'],
+        'gangguan': ['gangguan', 'disturbance', 'noise', 'hambatan'],
+        'waktu': ['waktu', 'timer', 'durasi', 'basis waktu'],
+        'menstabilkan': ['menstabilkan', 'stabil', 'menjaga'],
+        'gagal': ['gagal', 'rusak', 'mati']
+    };
+
+    // Pola negasi (terdeteksi dalam jendela sebelum kata kunci)
+    const negationPattern = /\b(?:tidak\s+(?:ada\s+)?|bukan\s+(?:merupakan\s+)?|tanpa\s+|kurang\s+|no\s+such|no\s+|not\s+|without\s+|never\s+)/i;
+
+    // Ambil kelompok sinonim dari sebuah kata kunci (atau kata itu sendiri)
+    function getGroup(kw) {
+        for (const [gid, syns] of Object.entries(synonymGroups)) {
+            if (syns.includes(kw)) return gid;
+        }
+        return null;
+    }
+
+    // Cek apakah kata kunci pada posisi idx didahului pola negasi
+    function negatedBefore(text, idx) {
+        if (idx <= 0) return false;
+        const before = text.slice(Math.max(0, idx - 35), idx);
+        if (before.trim().length === 0) return false;
+        return negationPattern.test(before);
+    }
+
+    // Evaluasi satu jawaban dengan rubrik bertingkat + deteksi struktur kalimat
+    function evaluateAnswer(userAnswer, q) {
+        const absentGroups = new Set((q.absent || []).map(kw => getGroup(kw.toLowerCase()) || kw.toLowerCase()));
+        const seenGroups = new Set();
+        const matched = [];
+        const wrongSign = [];
+        const negNotes = [];
+        let matchedWeight = 0, totalWeight = 0, penalized = 0;
+
+        q.keywords.forEach(kw => {
+            const kwl = kw.toLowerCase();
+            const gid = getGroup(kwl) || kwl;
+            if (seenGroups.has(gid)) return; // jangan hitung dua sinonim yang setara
+            seenGroups.add(gid);
+
+            const syns = synonymGroups[gid] || [kwl];
+            const w = syns.some(s => importantKeywords.has(s)) ? 2 : 1;
+            totalWeight += w;
+
+            let foundAt = -1;
+            for (const s of syns) {
+                const pos = userAnswer.indexOf(s);
+                if (pos !== -1) { foundAt = pos; break; }
+            }
+
+            const expectationAbsent = absentGroups.has(gid);
+            const negated = foundAt !== -1 && negatedBefore(userAnswer, foundAt);
+
+            if (foundAt !== -1) {
+                if (expectationAbsent) {
+                    // Konsep harus DISEBUTKAN dalam bentuk negatif (ketiadaannya)
+                    if (negated) {
+                        matched.push(kw);
+                        matchedWeight += w;
+                    } else {
+                        wrongSign.push(kw);
+                        penalized += w;
+                    }
+                } else {
+                    // Konsep biasa harus disebut secara positif
+                    if (negated) {
+                        negNotes.push(kw);
+                    } else {
+                        matched.push(kw);
+                        matchedWeight += w;
+                    }
+                }
+            }
+        });
+
+        matchedWeight = Math.max(0, matchedWeight - penalized);
+        const ratio = matchedWeight / totalWeight;
+        const wordCount = userAnswer.split(/\s+/).filter(w => w.length > 0).length;
+        const hasConnector = /(karena|dengan|untuk|sehingga|adalah|maka|yang|dari|pada|agar|to|and|because|which|with|that)\b/.test(userAnswer);
+        const structured = wordCount >= 5 && hasConnector;
+
+        let score = 0;
+        if (wordCount < 3) {
+            score = 0; // jawaban terlalu pendek / kosong
+        } else if (ratio >= 0.7 && structured) {
+            score = 10;
+        } else if (ratio >= 0.7) {
+            score = 8; // isi tepat tetapi menyerupai daftar kata (risiko keyword dumbing)
+        } else if (ratio >= 0.4 && structured) {
+            score = 7;
+        } else if (ratio >= 0.4) {
+            score = 5;
+        } else if (ratio >= 0.15 && structured) {
+            score = 4;
+        } else if (ratio >= 0.15) {
+            score = 2;
+        } else if (wordCount > 15) {
+            score = 2; // panjang tetapi tidak memuat kata kunci inti
+        }
+
+        return { score, ratio, matched, wrongSign, negNotes, structured, wordCount };
+    }
+
+    // Fungsi Evaluasi & Penilaian Otomatis
+    function calculateScore(viaAway) {
+        if (quizSubmitted) return;
+        quizSubmitted = true;
+        disarmAwayTimer();
+
+        if (viaAway) {
+            const notice = document.getElementById('autoNotice');
+            if (notice) notice.style.display = 'block';
+        }
+
+        let totalScore = 0;
+
+        currentQuestions.forEach((q, index) => {
+            const userAnswer = document.getElementById(`answer_${index}`).value.toLowerCase().trim();
+            const feedbackBox = document.getElementById(`feedback_${index}`);
+            const itemBadge = document.getElementById(`badge_${index}`);
+            const matchedDiv = document.getElementById(`matched_${index}`);
+
+            if (userAnswer.length === 0) {
+                studentScores[index] = 0;
+            } else {
+                const result = evaluateAnswer(userAnswer, q);
+                studentScores[index] = result.score;
+
+                // Umpan balik edukatif: tampilkan kata kunci yang cocok & yang belum
+                const matchedSet = new Set(result.matched);
+                const kwHtml = q.keywords.map(kw => {
+                    const has = matchedSet.has(kw.toLowerCase());
+                    const cls = has ? 'matched-yes' : 'matched-no';
+                    return `<span class="kw ${cls}">${has ? '&#10003;' : '&#10007;'} ${kw}</span>`;
+                }).join('');
+
+                const structNote = result.structured
+                    ? '<br><span class="kw-count">Struktur kalimat: baik</span>'
+                    : '<br><span class="kw-count" style="color:#d97706">Struktur kalimat: kurang &mdash; jawaban menyerupai daftar kata, bukan kalimat utuh</span>';
+
+                let kwFeedback = `Kata kunci terdeteksi: <span class="kw-count">${result.matched.length}/${q.keywords.length} (rasio ${Math.round(result.ratio * 100)}%)</span>${structNote}<br>${kwHtml}`;
+                if (result.wrongSign.length > 0) {
+                    kwFeedback += `<br><span class="kw-count" style="color:#b91c1c">&#9888; Menyebutkan hal yang seharusnya TIDAK ada: ${result.wrongSign.join(', ')}</span>`;
+                }
+                if (result.negNotes.length > 0) {
+                    kwFeedback += `<br><span class="kw-count" style="color:#92400e">&#9888;&#9888; Kata menegasi (${result.negNotes.join(', ')}) &mdash; berhati-hatilah, ini menandakan pemahaman terbalik</span>`;
+                }
+
+                matchedDiv.innerHTML = kwFeedback;
+            }
+
+            feedbackBox.style.display = 'block';
+            updateItemBadge(index, studentScores[index]);
+        });
+
+        updateTotalScoreDisplay();
+
+        // Nonaktifkan textarea setelah dikirim
+        document.querySelectorAll('textarea').forEach(el => el.disabled = true);
+        document.getElementById('btnSubmit').style.display = 'none';
+
+        // Scroll ke atas untuk melihat nilai
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Koreksi nilai manual oleh siswa jika otomatisasi kurang presisi
+    function overrideScore(index, newScore) {
+        studentScores[index] = newScore;
+        updateItemBadge(index, newScore);
+        updateTotalScoreDisplay();
+    }
+
+    function updateItemBadge(index, score) {
+        const itemBadge = document.getElementById(`badge_${index}`);
+        itemBadge.style.display = 'inline-block';
+        itemBadge.textContent = `Skor: ${score}/10`;
+        if (score >= 7) {
+            itemBadge.style.backgroundColor = '#10b981';
+        } else if (score >= 4) {
+            itemBadge.style.backgroundColor = '#f59e0b';
+        } else {
+            itemBadge.style.backgroundColor = '#ef4444';
+        }
+    }
+
+    function updateTotalScoreDisplay() {
+        const finalScore = studentScores.reduce((a, b) => a + b, 0);
+        
+        const scoreCard = document.getElementById('scoreCard');
+        const scoreNumber = document.getElementById('scoreNumber');
+        const progressBar = document.getElementById('progressBar');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const scoreSummary = document.getElementById('scoreSummary');
+
+        scoreCard.style.display = 'block';
+        scoreNumber.textContent = finalScore;
+        progressBar.style.width = `${finalScore}%`;
+
+        if (finalScore >= 70) {
+            scoreBadge.textContent = 'LULUS / SANGAT BAIK';
+            scoreBadge.className = 'badge badge-pass';
+            scoreSummary.textContent = 'Selamat! Pemahaman Anda tentang Sistem Kendali sudah sangat baik.';
+        } else {
+            scoreBadge.textContent = 'BELUM LULUS / PERLU EVALUASI';
+            scoreBadge.className = 'badge badge-fail';
+            scoreSummary.textContent = 'Pelajari kembali materi Open-Loop, Closed-Loop, dan Komponen Utama untuk meningkatkan skor Anda.';
+        }
+    }
+
+    function resetQuiz() {
+        if (confirm("Apakah Anda yakin ingin mengacak ulang kuis? Seluruh jawaban dan skor akan direset.")) {
+            quizSubmitted = false;
+            disarmAwayTimer();
+            document.getElementById('scoreCard').style.display = 'none';
+            document.getElementById('autoNotice').style.display = 'none';
+            document.getElementById('btnSubmit').style.display = 'inline-block';
+            renderQuiz();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    window.onload = renderQuiz;
+</script>
+
+</body>
+</html>
